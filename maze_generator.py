@@ -5,7 +5,10 @@ from collections import deque
 class MazeGenerator():
     """ """
 
-    N, E, S, W = 1, 2, 4, 8
+    OPPOSITE = {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}
+    DIRECTIONS = {'N': (0, -1), 'E': (1, 0), 'S': (0, 1), 'W': (-1, 0)}
+    WALL_BITS = {'N': 1, 'E': 2, 'S': 4, 'W': 8}
+
     pattern_42 = [
         [1, 0, 1, 0, 1, 1, 1],
         [1, 0, 1, 0, 0, 0, 1],
@@ -22,7 +25,7 @@ class MazeGenerator():
         self.height = height
         self.seed = seed
         random.seed(seed)
-        self.grid = [[0xF] * width for _ in range(height)]
+        self.grid = [[set() for _ in range(width)] for _ in range(height)]
 
     def _place_42(self, visited: set) -> bool:
         """Marks the '42' pattern cells as visited so DFS skips them."""
@@ -35,6 +38,21 @@ class MazeGenerator():
                 if self.pattern_42[row][col] == 1:
                     visited.add((start_col + col, start_row + row))
         return True
+
+    def _fix_open_areas(self) -> None:
+        """Adds back a wall in any 3x3 fully open area."""
+        for rs in range(self.height - 2):
+            for cs in range(self.width - 2):
+                fully_open = True
+                for r in range(rs, rs + 3):
+                    for c in range(cs, cs + 3):
+                        if c + 1 <= cs + 2 and 'E' not in self.grid[r][c]:
+                            fully_open = False
+                        if r + 1 <= rs + 2 and 'S' not in self.grid[r][c]:
+                            fully_open = False
+                if fully_open:
+                    self.grid[rs][cs].discard('S')
+                    self.grid[rs + 1][cs].discard('N')
 
     def generate(
             self,
@@ -65,17 +83,17 @@ class MazeGenerator():
                 visited.add((nx, ny))
                 stack.append((nx, ny))
                 if ny - y == -1:
-                    self.grid[y][x] -= self.N
-                    self.grid[ny][nx] -= self.S
+                    self.grid[y][x].add('N')
+                    self.grid[ny][nx].add('S')
                 elif nx - x == 1:
-                    self.grid[y][x] -= self.E
-                    self.grid[ny][nx] -= self.W
+                    self.grid[y][x].add('E')
+                    self.grid[ny][nx].add('W')
                 elif ny - y == 1:
-                    self.grid[y][x] -= self.S
-                    self.grid[ny][nx] -= self.N
+                    self.grid[y][x].add('S')
+                    self.grid[ny][nx].add('N')
                 elif nx - x == -1:
-                    self.grid[y][x] -= self.W
-                    self.grid[ny][nx] -= self.E
+                    self.grid[y][x].add('W')
+                    self.grid[ny][nx].add('E')
                 x, y = nx, ny
 
         if not perfect:
@@ -83,9 +101,11 @@ class MazeGenerator():
             for _ in range(extra):
                 rx = random.randint(0, self.width - 2)
                 ry = random.randint(0, self.height - 1)
-                if self.grid[ry][rx] & self.E and self.grid[ry][rx + 1] & self.W:
-                    self.grid[ry][rx] -= self.E
-                    self.grid[ry][rx + 1] -= self.W
+                if 'E' not in self.grid[ry][rx]:
+                    self.grid[ry][rx].add('E')
+                    self.grid[ry][rx + 1].add('W')
+
+        self._fix_open_areas()
 
     def solve(self, entry: tuple, exit: tuple) -> list:
         """Returns the shortest path from entry to exit as a list of N/E/S/W letters."""
@@ -95,13 +115,9 @@ class MazeGenerator():
             (x, y), path = queue.popleft()
             if (x, y) == exit:
                 return path
-            for wall, nx, ny, letter in [
-                (self.N, x,     y - 1, 'N'),
-                (self.E, x + 1, y,     'E'),
-                (self.S, x,     y + 1, 'S'),
-                (self.W, x - 1, y,     'W'),
-            ]:
-                if self.grid[y][x] & wall == 0 and (nx, ny) not in visited:
+            for letter, (dx, dy) in self.DIRECTIONS.items():
+                nx, ny = x + dx, y + dy
+                if letter in self.grid[y][x] and (nx, ny) not in visited:
                     visited.add((nx, ny))
                     queue.append(((nx, ny), path + [letter]))
         return []
@@ -115,7 +131,10 @@ if __name__ == "__main__":
     path = mg.solve(entry, exit)
 
     for row in mg.grid:
-        print(" ".join(f"{cell:X}" for cell in row))
+        print(" ".join(
+            f"{sum(MazeGenerator.WALL_BITS[d] for d in {'N','E','S','W'} - cell):X}"
+            for cell in row
+        ))
 
     print()
     print("Path:", "".join(path))

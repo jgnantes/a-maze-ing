@@ -1,1 +1,5 @@
 __pycache__
+.venv
+maze.txt
+.mypy_cache
+*.pyc

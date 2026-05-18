@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mazegen-pkg"
+version = "1.0.0"
+description = "Reusable maze generator for A-Maze-ing"
+requires-python = ">=3.10"
+
+[tool.setuptools]
+py-modules = ["maze_generator"]

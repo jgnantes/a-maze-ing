@@ -1,3 +1,29 @@
+"""Reusable maze generator module.
+
+Basic usage:
+    from maze_generator import MazeGenerator
+
+    maze = MazeGenerator(width=20, height=20, seed=42)
+    maze.generate(entry=(0, 0), exit=(19, 19), perfect=True)
+
+    grid = maze.grid
+    solution = maze.solve((0, 0), (19, 19))
+    output = maze.output_text((0, 0), (19, 19))
+
+Custom parameters:
+    width and height define the maze size.
+    seed makes generation reproducible.
+    perfect=True keeps one path between cells.
+    perfect=False adds extra passages.
+
+Accessible data:
+    grid stores open directions for each cell.
+    closed_42 stores cells used by the closed 42 pattern.
+    solve() returns the shortest path as N/E/S/W letters.
+    to_hex_rows() returns rows encoded as hexadecimal wall values.
+"""
+
+
 import random
 from collections import deque
 

@@ -14,8 +14,12 @@ run: install
 debug: install
 	$(PYTHON) -m pdb a_maze_ing.py $(CONFIG)
 
+build: install
+	$(PIP) install build
+	$(PYTHON) -m build
+
 clean:
-	rm -rf __pycache__ .mypy_cache *.pyc $(VENV)
+	rm -rf __pycache__ .mypy_cache *.pyc $(VENV) build dist *.egg-info
 
 lint: install
 	$(PYTHON) -m flake8 . --exclude=.venv

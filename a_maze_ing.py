@@ -46,7 +46,7 @@ def get_config(path: str) -> dict[str, Any]:
     config: dict[str, Any] = {}
     # Each accepted key becomes one visual or output decision: maze size,
     # endpoints, file path, generation mode, seed, or wall color.
-    missing = CONFIG_KEYS - {"SEED", "COLOR", "PERFECT"}
+    missing = CONFIG_KEYS - {"SEED", "COLOR"}
     try:
         with open(path, "r", encoding="utf-8") as config_file:
             for line in config_file:
@@ -83,7 +83,6 @@ def get_config(path: str) -> dict[str, Any]:
             f"The mandatory values for {missing} are missing from config.txt")
     config.setdefault("SEED", 42)
     config.setdefault("COLOR", "cyan")
-    config.setdefault("PERFECT", True)
     return config
 
 

@@ -11,12 +11,12 @@ install:
 run: install
 	$(PYTHON) a_maze_ing.py $(CONFIG)
 
-debug:
+debug: install
 	$(PYTHON) -m pdb a_maze_ing.py $(CONFIG)
 
 clean:
 	rm -rf __pycache__ .mypy_cache *.pyc $(VENV)
 
-lint:
-	$(PYTHON) -m flake8 .
-	$(PYTHON) -m mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+lint: install
+	$(PYTHON) -m flake8 . --exclude=.venv
+	$(PYTHON) -m mypy . --exclude .venv --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs

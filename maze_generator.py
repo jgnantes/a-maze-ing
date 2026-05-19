@@ -141,11 +141,11 @@ class MazeGenerator:
                 or self.width < self.pattern_width + 2
                 ):
             return False
-        #
+
         # Centering maps the pattern matrix to final grid coordinates.
         start_row = (self.height - self.pattern_height) // 2
         start_col = (self.width - self.pattern_width) // 2
-        #
+
         # Pattern cells are both closed visual blocks and already-visited DFS
         # cells, so corridors are carved around the 42 rather than through it.
         for row in range(self.pattern_height):
@@ -155,7 +155,7 @@ class MazeGenerator:
                     self.closed_42.add((start_col + col, start_row + row))
         return True
 
-    def _direction_between(self, cell: Cell, neighbor: Cell) -> str:
+    def _direction_between(self, main_cell: Cell, neighbor_cell: Cell) -> str:
         """Return the cardinal direction from one cell to its neighbor.
 
         Args:
@@ -166,34 +166,12 @@ class MazeGenerator:
             Direction letter that points from cell to neighbor.
         """
 
-        x, y = cell
-        nx, ny = neighbor
+        x, y = main_cell
+        nx, ny = neighbor_cell
         for direction, (dx, dy) in self.DIRECTIONS.items():
             if (x + dx, y + dy) == (nx, ny):
                 return direction
         raise ValueError("Cells must be neighbors.")
-
-    def _close_wall(self, x: int, y: int, nx: int, ny: int) -> None:
-        """Close the passage between two neighboring cells.
-
-        Args:
-            x: X coordinate of the first cell.
-            y: Y coordinate of the first cell.
-            nx: X coordinate of the neighboring cell.
-            ny: Y coordinate of the neighboring cell.
-        """
-
-        cell = (x, y)
-        neighbor = (nx, ny)
-        #
-        # Walls around the 42 stay closed so the drawing remains solid.
-        if cell in self.closed_42 or neighbor in self.closed_42:
-            return
-        #
-        # Removing matching openings from both cells renders one shared wall.
-        direction = self._direction_between(cell, neighbor)
-        self.grid[y][x].discard(direction)
-        self.grid[ny][nx].discard(self.OPPOSITE[direction])
 
     def _open_wall(self, x: int, y: int, nx: int, ny: int) -> None:
         """Open the passage between two neighboring cells.
@@ -210,6 +188,27 @@ class MazeGenerator:
         direction = self._direction_between((x, y), (nx, ny))
         self.grid[y][x].add(direction)
         self.grid[ny][nx].add(self.OPPOSITE[direction])
+
+    def _close_wall(self, x: int, y: int, nx: int, ny: int) -> None:
+        """Close the passage between two neighboring cells.
+
+        Args:
+            x: X coordinate of the first cell.
+            y: Y coordinate of the first cell.
+            nx: X coordinate of the neighboring cell.
+            ny: Y coordinate of the neighboring cell.
+        """
+
+        main_cell = (x, y)
+        neighbor_cell = (nx, ny)
+        # Walls around the 42 stay closed so the drawing remains solid.
+        if main_cell in self.closed_42 or neighbor_cell in self.closed_42:
+            return
+        # Removing matching openings from both cells renders one shared wall.
+        direction = self._direction_between(main_cell, neighbor_cell)
+        self.grid[y][x].discard(direction)
+        self.grid[ny][nx].discard(self.OPPOSITE[direction])
+
 
     def _is_open_area(self, start_row: int, start_col: int) -> bool:
         """Check whether a 3x3 area would render as one open room.
@@ -295,38 +294,38 @@ class MazeGenerator:
         # corridor decision.
         self._reset_grid()
         visited: set[Cell] = set()
-        #
+
         # Reserve the 42 before carving so DFS treats it as solid geometry.
         if not self._place_42(visited):
             raise ValueError("Maze too small to embed the '42' pattern.")
         self._validate_points(entry, exit)
-        #
+
         # DFS with backtracking creates a connected tree of corridors.
         stack: list[Cell] = []
         x, y = entry
         visited.add((x, y))
         stack.append((x, y))
-        #
+
         while stack:
+
             neighbors: list[Cell] = []
-            #
             # Unvisited neighbors are possible next corridor segments.
             for nx, ny in [(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)]:
                 if self._in_bounds((nx, ny)) and (nx, ny) not in visited:
                     neighbors.append((nx, ny))
-            #
+
             if not neighbors:
                 stack.pop()
                 if stack:
                     x, y = stack[-1]
             else:
-                # Opening to a random neighbor draws the next corridor segment.
+                # Opening to a random neighbor draws the next corridor segment
                 nx, ny = self.rng.choice(neighbors)
                 visited.add((nx, ny))
                 stack.append((nx, ny))
                 self._open_wall(x, y, nx, ny)
                 x, y = nx, ny
-        #
+
         if not perfect:
             # Extra openings create visible loops and alternate routes.
             extra = (self.width * self.height) // 10
@@ -360,7 +359,7 @@ class MazeGenerator:
         # Only cells inside the rectangle can belong to the highlighted path.
         if not self._in_bounds(entry) or not self._in_bounds(exit):
             raise ValueError("Entry and exit must be inside maze bounds.")
-        #
+
         # BFS explores by distance, so the first exit hit is the shortest path.
         queue: deque[tuple[Cell, list[str]]] = deque([(entry, [])])
         visited: set[Cell] = {entry}
@@ -368,7 +367,7 @@ class MazeGenerator:
             (x, y), path = queue.popleft()
             if (x, y) == exit:
                 return path
-            #
+
             # Direction letters correspond to visible openings in the grid.
             for letter, (dx, dy) in self.DIRECTIONS.items():
                 nx, ny = x + dx, y + dy
@@ -386,7 +385,7 @@ class MazeGenerator:
 
         rows: list[str] = []
         all_walls = {'N', 'E', 'S', 'W'}
-        #
+
         # Closed visual borders become bits in the output digit.
         for row in self.grid:
             values: list[str] = []

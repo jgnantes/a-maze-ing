@@ -166,9 +166,9 @@ def render_ascii(maze: MazeGenerator, config: dict[str, Any]) -> str:
             )
             top += apply_color("+", touches_42_corner)
             if "N" in maze.grid[y][x]:
-                top += "    "
+                top += "     "
             else:
-                top += apply_color("----", touches_42_wall)
+                top += apply_color("-----", touches_42_wall)
 
         last_top = (maze.width - 1, y)
         last_above = (maze.width - 1, y - 1)
@@ -181,15 +181,15 @@ def render_ascii(maze: MazeGenerator, config: dict[str, Any]) -> str:
             left = (x - 1, y)
             touches_42_wall = cell in maze.closed_42 or left in maze.closed_42
             if cell in maze.closed_42:
-                content = f"{COLORS['white']} 42 {RESET}"
+                content = f"{COLORS['white']}  #  {RESET}"
             elif cell == entry:
-                content = " E  "
+                content = "  E  "
             elif cell == exit_cell:
-                content = " X  "
+                content = "  X  "
             elif cell in path_cells:
-                content = " .  "
+                content = "  .  "
             else:
-                content = "    "
+                content = "     "
             if "W" in maze.grid[y][x]:
                 middle += " " + content
             else:
@@ -211,9 +211,9 @@ def render_ascii(maze: MazeGenerator, config: dict[str, Any]) -> str:
         bottom += apply_color("+", cell in maze.closed_42
                               or left in maze.closed_42)
         if "S" in maze.grid[-1][x]:
-            bottom += "    "
+            bottom += "     "
         else:
-            bottom += apply_color("----", cell in maze.closed_42)
+            bottom += apply_color("-----", cell in maze.closed_42)
 
     last_bottom = (maze.width - 1, maze.height - 1)
     bottom += apply_color("+", last_bottom in maze.closed_42)

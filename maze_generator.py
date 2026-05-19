@@ -209,7 +209,6 @@ class MazeGenerator:
         self.grid[y][x].discard(direction)
         self.grid[ny][nx].discard(self.OPPOSITE[direction])
 
-
     def _is_open_area(self, start_row: int, start_col: int) -> bool:
         """Check whether a 3x3 area would render as one open room.
 
@@ -328,18 +327,27 @@ class MazeGenerator:
 
         if not perfect:
             # Extra openings create visible loops and alternate routes.
-            extra = (self.width * self.height) // 10
-            for _ in range(extra):
-                rx = self.rng.randint(0, self.width - 2)
-                ry = self.rng.randint(0, self.height - 1)
-                if (
-                        (rx, ry) in self.closed_42
-                        or (rx + 1, ry) in self.closed_42
-                        ):
+            openings = max(1, (self.width * self.height) // 10)
+            opened = 0
+            attempts = 0
+            max_attempts = self.width * self.height * 4
+
+            while opened < openings and attempts < max_attempts:
+                attempts += 1
+                x = self.rng.randint(0, self.width - 1)
+                y = self.rng.randint(0, self.height - 1)
+                direction, (dx, dy) = self.rng.choice(list(self.DIRECTIONS.items()))
+                nx, ny = x + dx, y + dy
+
+                if not self._in_bounds((nx, ny)):
                     continue
-                if 'E' not in self.grid[ry][rx]:
-                    self.grid[ry][rx].add('E')
-                    self.grid[ry][rx + 1].add('W')
+                if (x, y) in self.closed_42 or (nx, ny) in self.closed_42:
+                    continue
+                if direction in self.grid[y][x]:
+                    continue
+
+                self._open_wall(x, y, nx, ny)
+                opened += 1
         self._fix_open_areas()
 
     def solve(self, entry: Cell, exit: Cell) -> list[str]:

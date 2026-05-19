@@ -336,7 +336,8 @@ class MazeGenerator:
                 attempts += 1
                 x = self.rng.randint(0, self.width - 1)
                 y = self.rng.randint(0, self.height - 1)
-                direction, (dx, dy) = self.rng.choice(list(self.DIRECTIONS.items()))
+                direction, (dx, dy) = self.rng.choice(
+                    list(self.DIRECTIONS.items()))
                 nx, ny = x + dx, y + dy
 
                 if not self._in_bounds((nx, ny)):

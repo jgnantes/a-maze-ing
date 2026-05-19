@@ -3,4 +3,4 @@ __pycache__
 maze.txt
 .mypy_cache
 *.pyc
-en.subject.pdf
+*.pdf

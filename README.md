@@ -168,10 +168,9 @@ pip install dist/mazegen_pkg-1.0.0-py3-none-any.whl
 
 Team members:
 
-- `jnantes-`: implemented `maze_generator.py` and `pyproject.toml` for the
+- `jnantes-`: implemented maze generation in `maze_generator.py` and `pyproject.toml` for the
   reusable package.
-- `raqdos-s`: implemented `a_maze_ing.py`, terminal rendering, interactions,
-  and the Makefile.
+- `raqdos-s`: implemented terminal rendering and interactions in `a_maze_ing.py`
 
 Initial planning:
 

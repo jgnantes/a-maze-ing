@@ -54,7 +54,7 @@ def get_config(path: str) -> dict[str, Any]:
                 if not line or line.startswith("#"):
                     continue
                 key, value = line.split("=", 1)
-                key = key.strip()
+                key = key.strip().upper()
                 if key not in CONFIG_KEYS:
                     continue
                 value = value.strip()

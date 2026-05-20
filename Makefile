@@ -5,8 +5,8 @@ CONFIG = config.txt
 
 install:
 	python3 -m venv $(VENV)
-	$(PIP) install --upgrade pip
-	$(PIP) install flake8 mypy
+	$(PIP) install -q --upgrade pip
+	$(PIP) install -q flake8 mypy
 
 run: install
 	$(PYTHON) a_maze_ing.py $(CONFIG)
@@ -15,7 +15,7 @@ debug: install
 	$(PYTHON) -m pdb a_maze_ing.py $(CONFIG)
 
 build: install
-	$(PIP) install build
+	$(PIP) install -q build
 	$(PYTHON) -m build
 
 clean:

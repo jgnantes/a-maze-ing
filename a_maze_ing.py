@@ -53,7 +53,10 @@ def get_config(path: str) -> dict[str, Any]:
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
-                key, value = line.split("=", 1)
+                try:
+                    key, value = line.split("=", 1)
+                except ValueError:
+                    continue
                 key = key.strip().upper()
                 if key not in CONFIG_KEYS:
                     continue
@@ -74,7 +77,7 @@ def get_config(path: str) -> dict[str, Any]:
     except ValueError:
         raise ValueError(
             "data from config.txt must be in KEY=VALUE format "
-            "and VALUE must be the correct type hint for KEY")
+            "and each VALUE must be the correct type for its KEY")
     if len(missing) == 1:
         raise KeyError(
             f"The value {next(iter(missing))} is missing from config.txt")
@@ -84,36 +87,6 @@ def get_config(path: str) -> dict[str, Any]:
     config.setdefault("SEED", 42)
     config.setdefault("COLOR", "cyan")
     return config
-
-
-def generate_maze(config: dict[str, Any]) -> MazeGenerator:
-    """Create and generate a maze from config values.
-
-    Args:
-        config: Parsed configuration values.
-
-    Returns:
-        Generated MazeGenerator instance.
-    """
-
-    maze = MazeGenerator(config["WIDTH"], config["HEIGHT"], config["SEED"])
-    maze.generate(config["ENTRY"], config["EXIT"], config["PERFECT"])
-    return maze
-
-
-def write_output(path: str, content: str) -> None:
-    """Write generated maze text to disk.
-
-    Args:
-        path: Output file path.
-        content: Maze text using the required hexadecimal format.
-
-    Raises:
-        OSError: If the file cannot be written.
-    """
-
-    with open(path, "w", encoding="utf-8") as output_file:
-        output_file.write(content)
 
 
 def render_ascii(maze: MazeGenerator, config: dict[str, Any]) -> str:
@@ -248,11 +221,17 @@ def run_terminal(maze: MazeGenerator, config: dict[str, Any]) -> None:
             config["SHOW_PATH"] = not config["SHOW_PATH"]
         elif command == "r":
             config["SEED"] += 1
-            maze = generate_maze(config)
-            write_output(
-                config["OUTPUT_FILE"],
-                maze.output_text(config["ENTRY"], config["EXIT"]),
+            maze = MazeGenerator(
+                config["WIDTH"],
+                config["HEIGHT"],
+                config["SEED"],
             )
+            maze.generate(config["ENTRY"], config["EXIT"], config["PERFECT"])
+            with open(config["OUTPUT_FILE"], "w",
+                      encoding="utf-8") as output_file:
+                output_file.write(
+                    maze.output_text(config["ENTRY"], config["EXIT"])
+                )
 
 
 def main() -> int:
@@ -267,11 +246,12 @@ def main() -> int:
         return 1
     try:
         config = get_config(sys.argv[1])
-        maze = generate_maze(config)
-        write_output(
-            config["OUTPUT_FILE"],
-            maze.output_text(config["ENTRY"], config["EXIT"]),
-        )
+        maze = MazeGenerator(config["WIDTH"], config["HEIGHT"], config["SEED"])
+        maze.generate(config["ENTRY"], config["EXIT"], config["PERFECT"])
+        with open(config["OUTPUT_FILE"], "w", encoding="utf-8") as output_file:
+            output_file.write(
+                maze.output_text(config["ENTRY"], config["EXIT"])
+            )
         run_terminal(maze, config)
     except (OSError, ValueError, KeyError) as error:
         print(f"Error: {error}")

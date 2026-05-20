@@ -376,7 +376,6 @@ class MazeGenerator:
             (x, y), path = queue.popleft()
             if (x, y) == exit:
                 return path
-
             # Direction letters correspond to visible openings in the grid.
             for letter, (dx, dy) in self.DIRECTIONS.items():
                 nx, ny = x + dx, y + dy

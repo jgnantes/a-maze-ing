@@ -183,6 +183,8 @@ class MazeGenerator:
             ny: Y coordinate of the neighboring cell.
         """
 
+        if (x, y) in self.closed_42 or (nx, ny) in self.closed_42:
+            return
         # Adding matching openings to both cells renders one continuous
         # corridor between adjacent squares.
         direction = self._direction_between((x, y), (nx, ny))
@@ -199,13 +201,10 @@ class MazeGenerator:
             ny: Y coordinate of the neighboring cell.
         """
 
-        main_cell = (x, y)
-        neighbor_cell = (nx, ny)
-        # Walls around the 42 stay closed so the drawing remains solid.
-        if main_cell in self.closed_42 or neighbor_cell in self.closed_42:
+        if (x, y) in self.closed_42 or (nx, ny) in self.closed_42:
             return
         # Removing matching openings from both cells renders one shared wall.
-        direction = self._direction_between(main_cell, neighbor_cell)
+        direction = self._direction_between((x, y), (nx, ny))
         self.grid[y][x].discard(direction)
         self.grid[ny][nx].discard(self.OPPOSITE[direction])
 
@@ -327,8 +326,8 @@ class MazeGenerator:
 
         if not perfect:
             # Extra openings create visible loops and alternate routes.
-            openings = max(1, (self.width * self.height) // 10)
             opened = 0
+            openings = max(1, (self.width * self.height) // 10)
             attempts = 0
             max_attempts = self.width * self.height * 4
 
